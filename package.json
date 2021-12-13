@@ -1,10 +1,13 @@
 {
   "name": "superkv",
   "version": "0.1.0",
-  "author": "",
+  "author": "g45t345rt",
   "license": "ISC",
-  "description": "",
-  "main": "index.js",
+  "description": "Supercharge Clouflare KeyValue store",
+  "main": "./dist/index",
+  "types": "./dist/index.d.ts",
+  "browser": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "files": [
     "dist"
   ],
@@ -26,7 +29,7 @@
     "dotenv": "^10.0.0",
     "esbuild": "^0.14.3",
     "isomorphic-fetch": "^3.0.0",
-    "jest": "^27.4.4",
+    "jest": "^27.4.5",
     "jest-extended": "^1.2.0",
     "minifaker": "^1.25.0",
     "nanoid": "^3.1.30",

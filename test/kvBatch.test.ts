@@ -1,5 +1,5 @@
 import { KVNamespaceApi, KVTable, KVApi } from '../src'
-import { mockUsers, User } from './mockUser'
+import { mockUsers, User, userProperties } from './mockUser'
 
 const accountId = process.env.ACCOUNT_ID
 const authToken = process.env.AUTH_TOKEN
@@ -9,7 +9,11 @@ test('Test kvTable', async () => {
   const namespace = await kvNamespaceApi.resetAndGetNamespace('kvtable_test')
 
   const kvApi = new KVApi({ kvNamespaceApi, namespaceId: namespace.id })
-  const kvUsers = new KVTable<User>({ kvApi, name: 'users' }, {
+  const kvUsers = new KVTable<User>({
+    kvApi,
+    name: 'users',
+    properties: userProperties
+  }, {
     prefix: {
       'email': {
         keyValue: (metadata) => metadata.email

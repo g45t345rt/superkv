@@ -12,5 +12,8 @@
       "jest"
     ],
     "target": "ESNext"
-  }
+  },
+  "include": [
+    "./src"
+  ]
 }
