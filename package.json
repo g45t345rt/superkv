@@ -1,0 +1,35 @@
+{
+  "name": "superkv",
+  "version": "0.0.1",
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "main": "index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "jest --coverage",
+    "test:kvTable": "jest -i test/kvTable.test.ts",
+    "test:kvNamespaceApi": "jest -i test/kvNamespaceApi.test.ts",
+    "test:kvApi": "jest -i test/kvApi.test.ts",
+    "test:kvBig": "jest -i test/kvBig.test.ts",
+    "test:kvShard": "jest -i test/kvShard.test.ts",
+    "build": "ts-node build.ts && tsc --emitDeclarationOnly --outDir dist"
+  },
+  "dependencies": {
+    "lodash.pick": "^4.4.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.0.3",
+    "dotenv": "^10.0.0",
+    "esbuild": "^0.14.3",
+    "isomorphic-fetch": "^3.0.0",
+    "jest": "^27.4.4",
+    "jest-extended": "^1.2.0",
+    "minifaker": "^1.25.0",
+    "nanoid": "^3.1.30",
+    "ts-jest": "^27.1.1",
+    "ts-node": "^10.4.0"
+  }
+}
