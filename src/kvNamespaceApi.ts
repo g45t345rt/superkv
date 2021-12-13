@@ -18,24 +18,17 @@ interface ListNamespacesOptions {
   direction?: 'asc' | 'desc'
 }
 
-export interface NamespaceResponse {
+export interface NamespaceResponse<T> {
   success: boolean
   errors: []
   messages: []
+  result?: T
 }
 
 interface Namespace {
   id: string
   title: string
   supports_url_encoding: boolean
-}
-
-interface CreateNamespaceResponse extends NamespaceResponse {
-  result: Namespace
-}
-
-interface ListNamespaceResponse extends NamespaceResponse {
-  result: Namespace[]
 }
 
 export default class KVNamespaceApi {
@@ -86,27 +79,27 @@ export default class KVNamespaceApi {
     return res2.result
   }
 
-  createNamespace = (title: string): Promise<CreateNamespaceResponse> => {
+  createNamespace = (title: string): Promise<NamespaceResponse<Namespace>> => {
     return this.fetch(``, {
       method: 'POST',
       body: JSON.stringify({ title })
     })
   }
 
-  removeNamespace = (id: string): Promise<NamespaceResponse> => {
+  removeNamespace = (id: string): Promise<NamespaceResponse<void>> => {
     return this.fetch(`/${id}`, {
       method: 'DELETE'
     })
   }
 
-  renameNamespace = (id: string, title: string): Promise<NamespaceResponse> => {
+  renameNamespace = (id: string, title: string): Promise<NamespaceResponse<void>> => {
     return this.fetch(`/${id}`, {
       method: 'PUT',
       body: JSON.stringify({ title })
     })
   }
 
-  listNamespaces = (listOptions: ListNamespacesOptions = {}): Promise<ListNamespaceResponse> => {
+  listNamespaces = (listOptions: ListNamespacesOptions = {}): Promise<NamespaceResponse<Namespace[]>> => {
     const initParams = {}
     if (listOptions) {
       if (listOptions.direction) initParams['direction'] = listOptions.direction

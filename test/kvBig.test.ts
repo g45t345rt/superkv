@@ -15,7 +15,7 @@ test('Test kvBig set', async () => {
 
   const namepsace = await kvNamespaceApi.createOrGetNamespace('kbBig_test')
   const kvApi = kvNamespaceApi.useKVApi(namepsace.id)
-
+  
   const kvBig = kvApi.useKVBig({ chunkSize: 500000 })
 
   const shardKey0 = kvBig.createShardKey('testing', 0)
@@ -30,7 +30,7 @@ test('Test kvBig set', async () => {
   const shardKey100 = kvBig.createShardKey('testing', 100)
   expect(shardKey100).toBe('testing__shard100')
 
-  const fd = await open('./test/sample-2mb.json', 'r')
+  //const fd = await open('./test/sample-2mb.json', 'r')
   //const readStream = fd.createReadStream()
   //await kvBig.set('file', readStream)
 

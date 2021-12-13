@@ -20,10 +20,10 @@ Store Cloudflare KV data with more control and power.
 
 ## Why / Limits / Warning
 
-I have no prior knowledge in making a database interface and this is the best I could come up with.
-I made this because wanted to have more control over the KV storage.
-If you have ideas or you know how to optimize/fix things please help :)
-KV uses lexicographical order ascending only so if you want to sort descending you have to...
+- I made this because wanted to have more control over the KV storage.
+- If you have ideas or you know how to optimize/fix things please help :)
+- KV uses lexicographical order ascending only so if you want to sort descending...
+- I have no prior knowledge in making a database interface and this is the best I could come up with.
 
 ## How to use it
 
@@ -36,3 +36,10 @@ KV uses lexicographical order ascending only so if you want to sort descending y
 ### KVBatch
 
 ### KVBig
+
+## Development
+
+## Previous try
+
+<https://github.com/g45t345rt/cf-kvprefix>
+

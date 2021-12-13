@@ -11,6 +11,15 @@ export interface User {
   description: string
 }
 
+export const userProperties = [
+  'username',
+  'email',
+  'active',
+  'points',
+  'createdAt',
+  'description'
+]
+
 const toUnix = (date: Date) => new Date(date).getTime()
 
 export const mockUser = () => {

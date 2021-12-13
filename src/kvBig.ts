@@ -10,11 +10,6 @@ export interface KVBigOptions {
   encoding?: BufferEncoding
 }
 
-interface KVBigMetadata {
-  name: string
-  type: string
-}
-
 export default class KVBig {
   kvApi: KVApi
   options: KVBigOptions
@@ -30,17 +25,10 @@ export default class KVBig {
     return `${key}__shard${number}`
   }
 
-  getMetadata = async (key: string) => {
-    const list = await this.kvApi.listKeys<KVBigMetadata>({ prefix: this.createShardKey(key) }) // get first shard for shardCount
-    if (list.result.length === 0) return null
-    const shardKeys = list.result.map(r => r.name)
-    const firstShard = list.result[0]
-    const { name, type } = firstShard.metadata || {}
-    return {
-      name,
-      type,
-      shardKeys
-    }
+  getTotalShards = async (key: string) => {
+    const list = await this.kvApi.listKeys({ prefix: this.createShardKey(key) })
+    if (list.result.length === 0) return 0
+    return list.result.length
   }
 
   get = async (key: string, writable: Writable) => {
@@ -51,21 +39,21 @@ export default class KVBig {
       })
     })
 
-    const metadata = await this.getMetadata(key)
-    if (!metadata) return null
+    const totalShards = await this.getTotalShards(key)
+    if (totalShards === 0) return null
 
-    const { shardKeys } = metadata
-    for (let i = 0; i < shardKeys.length; i++) {
-      const value = await this.kvApi.readKeyValuePair(shardKeys[i])
-      const chunk = Buffer.from(value, this.options.encoding)
+    for (let i = 0; i < totalShards; i++) {
+      const shardKey = this.createShardKey(key, i)
+      const res = await this.kvApi.readKeyValuePair(shardKey)
+      if (!res.success) throw res
+
+      const chunk = Buffer.from(res.result, this.options.encoding)
 
       await writeChunk(chunk)
     }
   }
 
-  sleep = async (ms) => new Promise(resolve => setTimeout(resolve, ms))
-
-  set = async (key: string, reader: Readable, metadata?: KVBigMetadata) => {
+  set = async (key: string, reader: Readable) => {
     let chunks = []
     let dataSize = 0
     let shardNumber = 0
@@ -78,14 +66,12 @@ export default class KVBig {
 
       console.log('Writing keyValuePair', buffer.length)
       const shardKey = this.createShardKey(key, shardNumber)
-      await this.kvApi.writeKeyValuePair(shardKey, buffer.toString(this.options.encoding))
+      await this.kvApi.writeKeyValuePair(shardKey, buffer.toString(this.options.encoding), {})
       console.log('Done', shardNumber)
       shardNumber++
     }
 
     for await (const chunk of reader) {
-      await this.sleep(250)
-
       const chunkSize = chunk.length
       if (dataSize + chunkSize > this.options.chunkSize) {
         await sendChunk()
@@ -100,12 +86,13 @@ export default class KVBig {
   }
 
   del = async (key: string) => {
-    const { shardKeys } = await this.getMetadata(key)
-    if (!shardKeys) return
+    const totalShards = await this.getTotalShards(key)
+    if (totalShards === 0) return
 
     const keysToDelete = []
-    for (let i = 0; i < shardKeys.length; i++) {
-      keysToDelete.push(shardKeys[i])
+    for (let i = 0; i < totalShards; i++) {
+      const shardKey = this.createShardKey(key, i)
+      keysToDelete.push(shardKey)
     }
 
     await this.kvApi.deleteMultipleKeyValuePairs(keysToDelete)
