@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "author": "g45t345rt",
   "license": "ISC",
-  "description": "Supercharge Clouflare KeyValue store",
+  "description": "Store Cloudflare KV with more control and power",
   "main": "./dist/index",
   "types": "./dist/index.d.ts",
   "browser": "./dist/index.js",
@@ -18,7 +18,8 @@
     "test:kvApi": "jest -i test/kvApi.test.ts",
     "test:kvBig": "jest -i test/kvBig.test.ts",
     "test:kvBatch": "jest -i test/kvBatch.test.ts",
-    "build": "ts-node build.ts && tsc --emitDeclarationOnly --outDir dist"
+    "build": "ts-node build.ts && tsc --emitDeclarationOnly --outDir dist",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "form-data": "^4.0.0",

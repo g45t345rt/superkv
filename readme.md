@@ -1,4 +1,4 @@
-# SUPERKV (experimental)
+# SUPERKV - Supercharge Clouflare KeyValue store (experimental)
 
 Store Cloudflare KV with more control and power.
 
