@@ -44,7 +44,7 @@ interface ListOptions {
   limit?: number
 }
 
-export default class KVTable<Metadata> {
+export default class KVTable<Metadata, Value> {
   kvApi: KVApi
   tableDefinition: KVTableDefinition<Metadata>
 
@@ -121,10 +121,13 @@ export default class KVTable<Metadata> {
     }
   }
 
-  prepareSet = async (key: string, metadata: Metadata, value?: string, options?: SetOptions) => {
+  prepareSet = async (key: string, metadata: Metadata, value?: Value, options?: SetOptions) => {
     const sanitizedMetadata = pick(metadata, this.tableDefinition.properties)
     const dataKey = this.createDataKey(key)
-    const data = { key: dataKey, value: value || '', metadata: sanitizedMetadata, ...options } as KeyValuePair
+
+    const _value = value ? JSON.stringify(value) : ''
+
+    const data = { key: dataKey, value: _value, metadata: sanitizedMetadata, ...options } as KeyValuePair
 
     const { dataToWrite, keysToDelete } = await this.preparePrefixSet(key, metadata, options)
     return {
@@ -133,7 +136,7 @@ export default class KVTable<Metadata> {
     }
   }
 
-  set = async (key: string, metadata: Metadata, value?: string, options?: SetOptions) => {
+  set = async (key: string, metadata: Metadata, value?: Value, options?: SetOptions) => {
     const { dataToWrite, keysToDelete } = await this.prepareSet(key, metadata, value, options)
     const res1 = await this.kvApi.writeMultipleKeyValuePairs(dataToWrite)
     if (!res1.success) throw res1
@@ -163,9 +166,11 @@ export default class KVTable<Metadata> {
     return result[0].metadata
   }
 
-  getValue = async (key: string) => {
+  getValue = async (key: string): Promise<Value> => {
     const dataKey = this.createDataKey(key)
-    return await this.kvApi.readKeyValuePair(dataKey)
+    const res = await this.kvApi.readKeyValuePair(dataKey)
+    if (res.success) return res.result
+    return null
   }
 
   getPrefixKeys = async (key: string): Promise<string[]> => {
@@ -267,6 +272,6 @@ export default class KVTable<Metadata> {
   }
 
   useBatch = (chunkSize?: number) => {
-    return new KVBatch<Metadata>({ kvApi: this.kvApi }, { kvTable: this, chunkSize })
+    return new KVBatch<Metadata, Value>({ kvApi: this.kvApi }, { kvTable: this, chunkSize })
   }
 }

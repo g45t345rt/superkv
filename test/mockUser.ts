@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid'
-import faker from 'minifaker'
+import faker, { array } from 'minifaker'
 import { ulid } from 'ulid'
 import 'minifaker/dist/locales/en'
 
@@ -11,6 +11,9 @@ export interface User {
   active: boolean
   points: number
   timestamp: number
+}
+
+export interface UserValue extends User {
   description: string
 }
 
@@ -53,11 +56,15 @@ export const mockUser = () => {
     timestamp: toUnix(faker.date({ from: new Date('2019'), to: new Date('2020') }))
   } as User
 
-  return { key, metadata: user }
+  const userValue = {
+    description: array(10, () => faker.word()).join(' ')
+  } as UserValue
+
+  return { key, metadata: user, value: userValue }
 }
 
 export const mockUsers = (limit: number) => {
-  return faker.array<{ key: string, metadata: User }>(limit, () => {
+  return faker.array<{ key: string, metadata: User, value: UserValue }>(limit, () => {
     return mockUser()
   })
 }

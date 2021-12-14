@@ -8,10 +8,10 @@ interface KVBatchArgs {
 
 export interface KVBatchOptions {
   chunkSize?: number
-  kvTable?: KVTable<any>
+  kvTable?: KVTable<any, any>
 }
 
-export default class KVBatch<Metadata> {
+export default class KVBatch<Metadata, Value> {
   kvApi: KVApi
   options: KVBatchOptions
   writeDispatcher: DispatchAfter<KeyValuePair>
@@ -37,7 +37,7 @@ export default class KVBatch<Metadata> {
     })
   }
 
-  set = async (key: string, metadata: Metadata, value?: string, options?: SetOptions) => {
+  set = async (key: string, metadata: Metadata, value?: Value, options?: SetOptions) => {
     const { kvTable } = this.options
     if (kvTable) {
       const { dataToWrite, keysToDelete } = await kvTable.prepareSet(key, metadata, value, options)

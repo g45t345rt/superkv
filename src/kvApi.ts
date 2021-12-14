@@ -77,7 +77,6 @@ export default class KVApi {
     formData.append('value', value)
     formData.append('metadata', JSON.stringify(metadata || {}))
 
-    const test = `multipart/form-data; ${formData.getBoundary()}`
     return this.fetch(`/values/${key}?${params}`, {
       method: 'PUT',
       // @ts-ignore
