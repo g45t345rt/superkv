@@ -37,7 +37,7 @@ export default class KVBatch<Metadata> {
     })
   }
 
-  set = async (key: string, metadata: Metadata, value: string, options?: SetOptions) => {
+  set = async (key: string, metadata: Metadata, value?: string, options?: SetOptions) => {
     const { kvTable } = this.options
     if (kvTable) {
       const { dataToWrite, keysToDelete } = await kvTable.prepareSet(key, metadata, value, options)

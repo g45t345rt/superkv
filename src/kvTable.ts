@@ -1,5 +1,6 @@
-import KVApi, { KeyValuePair } from './kvApi'
 import pick from 'lodash.pick'
+
+import KVApi, { KeyValuePair } from './kvApi'
 import KVBatch from './kvBatch'
 import DispatchAfter from './dispatchAfter'
 
@@ -16,22 +17,23 @@ export interface SetOptions {
   expiration_ttl?: number
 }
 
-export interface KVTableOptions<Metadata> {
+export interface KVTableDefinition<Metadata> {
+  name: string
+  properties: string[]
   prefix?: Prefix<Metadata>
   prefixDevider?: string
 }
 
-interface KVTableArgs {
+interface KVTableArgs<Metadata> {
   kvApi: KVApi
-  name: string
-  properties: string[]
+  tableDefinition: KVTableDefinition<Metadata>
 }
 
 interface ListResponse<Metadata> {
   result: {
     key: string
-    expiration: number
     metadata: Metadata
+    expiration?: number
   }[]
   cursor?: string
 }
@@ -44,18 +46,15 @@ interface ListOptions {
 
 export default class KVTable<Metadata> {
   kvApi: KVApi
-  properties: string[]
-  name: string
-  options: KVTableOptions<Metadata>
+  tableDefinition: KVTableDefinition<Metadata>
 
-  constructor(args: KVTableArgs, options?: KVTableOptions<Metadata>) {
-    const { kvApi, name, properties } = args
+  constructor(args: KVTableArgs<Metadata>) {
+    const { kvApi, tableDefinition } = args
     this.kvApi = kvApi
-    this.name = name
-    this.properties = properties
-    this.options = { prefix: {}, prefixDevider: '__', ...options }
+    this.tableDefinition = { prefix: {}, prefixDevider: '~~', ...tableDefinition }
 
-    Object.keys(this.options.prefix).forEach(prefixKey => {
+    const prefix = this.tableDefinition
+    Object.keys(prefix).forEach(prefixKey => {
       if (prefixKey === 'dataKey' || prefixKey === 'prefixData') {
         throw `Prefix [${prefixKey}] is reserved.`
       }
@@ -63,7 +62,7 @@ export default class KVTable<Metadata> {
   }
 
   optionsPrefixToArray = () => {
-    const { prefix } = this.options
+    const { prefix } = this.tableDefinition
     return Object.keys(prefix).map((prefixName) => {
       const value = prefix[prefixName]
       return { prefixName, value }
@@ -77,9 +76,9 @@ export default class KVTable<Metadata> {
       const { filter, sortValue, keyValue } = value
       if (typeof filter === 'function' && !filter(metadata)) return
 
-      let dataPrefixKey = this.createPrefixKey(prefixName, key)
-      if (sortValue) dataPrefixKey = this.createPrefixKey(prefixName, key, sortValue(metadata))
-      if (keyValue) dataPrefixKey = this.createPrefixKey(prefixName, key, keyValue(metadata))
+      let dataPrefixKey = this.createPrefixKey(prefixName, null, key)
+      if (sortValue) dataPrefixKey = this.createPrefixKey(prefixName, sortValue(metadata), key)
+      if (keyValue) dataPrefixKey = this.createPrefixKey(prefixName, keyValue(metadata), key)
 
       if (dataPrefixKey) prefixKeys.push(dataPrefixKey)
     })
@@ -88,21 +87,21 @@ export default class KVTable<Metadata> {
   }
 
   createDataKey = (key?: string) => {
-    return this.toKey([this.name, 'dataKey', key])
+    return this.toKey([this.tableDefinition.name, 'dataKey', key])
   }
 
   createPrefixDataKey = (key?: string) => {
-    return this.toKey([this.name, 'prefixData', key])
+    return this.toKey([this.tableDefinition.name, 'prefixData', key])
   }
 
-  createPrefixKey = (prefixName: string, key?: string, value?: string) => {
-    return this.toKey([this.name, 'prefix', prefixName, value, key])
+  createPrefixKey = (prefixName: string, value?: string, key?: string) => {
+    return this.toKey([this.tableDefinition.name, 'prefix', prefixName, value, key])
   }
 
-  toKey = (args: string[]) => args.filter(i => !!i).join(this.options.prefixDevider)
+  toKey = (args: string[]) => args.filter(i => !!i).join(this.tableDefinition.prefixDevider)
 
   preparePrefixSet = async (key: string, metadata: Metadata, options?: SetOptions) => {
-    const sanitizedMetadata = pick(metadata, this.properties)
+    const sanitizedMetadata = pick(metadata, this.tableDefinition.properties)
     const currentPrefixKeys = await this.getPrefixKeys(key)
 
     // Prefix keys with metadata
@@ -123,7 +122,7 @@ export default class KVTable<Metadata> {
   }
 
   prepareSet = async (key: string, metadata: Metadata, value?: string, options?: SetOptions) => {
-    const sanitizedMetadata = pick(metadata, this.properties)
+    const sanitizedMetadata = pick(metadata, this.tableDefinition.properties)
     const dataKey = this.createDataKey(key)
     const data = { key: dataKey, value: value || '', metadata: sanitizedMetadata, ...options } as KeyValuePair
 
@@ -157,9 +156,9 @@ export default class KVTable<Metadata> {
     if (!res.success) throw res
   }
 
-  getMetadata = async (key: string) => {
-    const dataKey = this.createDataKey(key)
-    const { result } = await this.list({ prefix: dataKey })
+  getMetadata = async (keyOrPrefixValue: string, prefixName?: string) => {
+    const prefix = prefixName ? this.createPrefixKey(prefixName, keyOrPrefixValue) : this.createDataKey(keyOrPrefixValue)
+    const { result } = await this.list({ prefix })
     if (result.length === 0) return null
     return result[0].metadata
   }
@@ -180,10 +179,18 @@ export default class KVTable<Metadata> {
     const { prefix, cursor, limit } = { prefix: this.createDataKey(), limit: 1000, ...listOptions }
     const res = await this.kvApi.listKeys<Metadata>({ cursor, limit, prefix })
     if (!res.success) throw res
+
+    const parseKey = (key: string) => {
+      const parsed = key.split(this.tableDefinition.prefixDevider)
+      return parsed[parsed.length - 1]
+    }
+
     return {
       result: res.result.map((r) => {
         const { name, expiration, metadata } = r
-        return { key: name, expiration, metadata }
+        const key = parseKey(name)
+        if (expiration) return { key, metadata, expiration }
+        return { key, metadata }
       }),
       cursor: res.result_info.cursor
     }

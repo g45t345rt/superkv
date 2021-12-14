@@ -1,5 +1,6 @@
-import KVApi from './kvApi'
 import { Writable, Readable } from 'stream'
+
+import KVApi from './kvApi'
 
 interface KVBigArgs {
   kvApi: KVApi

@@ -20,7 +20,10 @@ interface ListNamespacesOptions {
 
 export interface NamespaceResponse<T> {
   success: boolean
-  errors: []
+  errors: {
+    code: number
+    message: string
+  }[]
   messages: []
   result?: T
 }

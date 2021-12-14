@@ -4,10 +4,6 @@ import { open } from 'fs/promises'
 const accountId = process.env.ACCOUNT_ID
 const authToken = process.env.AUTH_TOKEN
 
-test('Test createShardKey', () => {
-
-})
-
 test('Test kvBig set', async () => {
   const kvNamespaceApi = new KVNamespaceApi({ accountId }, { authToken })
 

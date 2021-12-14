@@ -1,6 +1,6 @@
 {
   "name": "superkv",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "author": "g45t345rt",
   "license": "ISC",
   "description": "Supercharge Clouflare KeyValue store",
@@ -17,7 +17,7 @@
     "test:kvNamespaceApi": "jest -i test/kvNamespaceApi.test.ts",
     "test:kvApi": "jest -i test/kvApi.test.ts",
     "test:kvBig": "jest -i test/kvBig.test.ts",
-    "test:kvShard": "jest -i test/kvShard.test.ts",
+    "test:kvBatch": "jest -i test/kvBatch.test.ts",
     "build": "ts-node build.ts && tsc --emitDeclarationOnly --outDir dist"
   },
   "dependencies": {
@@ -34,6 +34,7 @@
     "minifaker": "^1.25.0",
     "nanoid": "^3.1.30",
     "ts-jest": "^27.1.1",
-    "ts-node": "^10.4.0"
+    "ts-node": "^10.4.0",
+    "ulid": "^2.3.0"
   }
 }

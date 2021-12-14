@@ -1,7 +1,10 @@
+import FormData from 'form-data'
+
 import KVNamespaceApi, { NamespaceResponse } from './kvNamespaceApi'
 import KVBig, { KVBigOptions } from './kvBig'
-import { SetOptions } from './kvtable'
-import FormData from 'form-data'
+import { KVTableDefinition, SetOptions } from './kvtable'
+import KVBatch from './kvBatch'
+import KVTable from './kvTable'
 
 interface KVApiArgs {
   kvNamespaceApi: KVNamespaceApi
@@ -118,6 +121,14 @@ export default class KVApi {
     return this.fetch(`/keys?${params.toString()}`, {
       method: 'GET'
     })
+  }
+
+  useKVTable = <T>(tableDefinition: KVTableDefinition<T>) => {
+    return new KVTable({ kvApi: this, tableDefinition })
+  }
+
+  useKVBatch = (options?: KVBigOptions) => {
+    return new KVBatch({ kvApi: this }, options)
   }
 
   useKVBig = (options?: KVBigOptions) => {
