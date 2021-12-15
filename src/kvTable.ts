@@ -35,7 +35,7 @@ interface ListResponse<Metadata> {
   cursor?: string
 }
 
-interface ListOptions {
+export interface ListOptions {
   prefix?: string
   cursor?: string
   limit?: number

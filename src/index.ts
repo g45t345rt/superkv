@@ -1,7 +1,7 @@
 import KVApi from './kvapi'
 import KVNamespaceApi from './kvNamespaceApi'
-import KVTable, { KVTableDefinition } from './kvtable'
-import KVBatch from './kvbatch'
+import KVTable, { KVTableDefinition, ListOptions } from './kvTable'
+import KVBatch from './kvBatch'
 import KVBig from './kvBig'
 import KVItem from './kvItem'
 
@@ -16,5 +16,6 @@ export {
   KVBatch,
   KVBig,
   KVItem,
+  ListOptions,
   KVTableDefinition
 }

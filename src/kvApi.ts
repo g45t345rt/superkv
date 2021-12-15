@@ -2,9 +2,8 @@ import FormData from 'form-data'
 
 import KVNamespaceApi, { NamespaceResponse } from './kvNamespaceApi'
 import KVBig, { KVBigOptions } from './kvBig'
-import { KVTableDefinition, SetOptions } from './kvtable'
+import KVTable, { KVTableDefinition, SetOptions } from './kvTable'
 import KVBatch from './kvBatch'
-import KVTable from './kvTable'
 import KVItem from './kvItem'
 
 interface KVApiArgs {
