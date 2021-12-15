@@ -108,9 +108,7 @@ export default class KVTable<Metadata, Value> {
 
   prepareSet = async (key: string, metadata: Metadata, value?: Value, options?: SetOptions) => {
     const dataKey = this.createDataKey(key)
-
     const _value = value ? JSON.stringify(value) : ''
-
     const data = { key: dataKey, value: _value, metadata, ...options } as KeyValuePair
 
     const { dataToWrite, keysToDelete } = await this.preparePrefixSet(key, metadata, options)

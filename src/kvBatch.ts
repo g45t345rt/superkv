@@ -1,5 +1,6 @@
 import KVApi, { KeyValuePair, SetOptions } from './kvApi'
 import DispatchAfter from './dispatchAfter'
+import KVTable from './kvTable'
 
 interface KVBatchArgs {
   kvApi: KVApi
@@ -35,7 +36,7 @@ export default class KVBatch {
     })
   }
 
-  setPair = async (keyValuePair: KeyValuePair | KeyValuePair[]) => {
+  setFromPair = async (keyValuePair: KeyValuePair | KeyValuePair[]) => {
     await this.writeDispatcher.set(keyValuePair)
   }
 
@@ -45,7 +46,18 @@ export default class KVBatch {
     await this.writeDispatcher.set(keyValuePair)
   }
 
-  del = async (key: string | string[]) => {
+  setToTable = async <Metadata, Value>(kvTable: KVTable<Metadata, Value>, key: string, metadata: Metadata, value?: Value, options?: SetOptions) => {
+    const { dataToWrite, keysToDelete } = await kvTable.prepareSet(key, metadata, value, options)
+    await this.writeDispatcher.set(dataToWrite)
+    await this.deleteDispatcher.set(keysToDelete)
+  }
+
+  delFromTable = async (kvTable: KVTable<any, any>, key: string) => {
+    const keysToDelete = await kvTable.prepareDel(key as string)
+    await this.deleteDispatcher.set(keysToDelete)
+  }
+
+  del = async (key: string | string[], kvTable?: KVTable<any, any>) => {
     await this.deleteDispatcher.set(key)
   }
 
