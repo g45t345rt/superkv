@@ -1,5 +1,3 @@
-import pick from 'lodash.pick'
-
 import KVApi, { KeyValuePair } from './kvApi'
 import KVBatch from './kvBatch'
 import DispatchAfter from './dispatchAfter'
@@ -17,16 +15,15 @@ export interface SetOptions {
   expiration_ttl?: number
 }
 
-export interface KVTableDefinition<Metadata> {
+export interface KVTableDefinition<Metadata, Value> {
   name: string
-  properties: string[]
   prefix?: Prefix<Metadata>
   prefixDevider?: string
 }
 
-interface KVTableArgs<Metadata> {
+interface KVTableArgs<Metadata, Value> {
   kvApi: KVApi
-  tableDefinition: KVTableDefinition<Metadata>
+  tableDefinition: KVTableDefinition<Metadata, Value>
 }
 
 interface ListResponse<Metadata> {
@@ -46,9 +43,9 @@ interface ListOptions {
 
 export default class KVTable<Metadata, Value> {
   kvApi: KVApi
-  tableDefinition: KVTableDefinition<Metadata>
+  tableDefinition: KVTableDefinition<Metadata, Value>
 
-  constructor(args: KVTableArgs<Metadata>) {
+  constructor(args: KVTableArgs<Metadata, Value>) {
     const { kvApi, tableDefinition } = args
     this.kvApi = kvApi
     this.tableDefinition = { prefix: {}, prefixDevider: '~~', ...tableDefinition }
@@ -101,12 +98,11 @@ export default class KVTable<Metadata, Value> {
   toKey = (args: string[]) => args.filter(i => !!i).join(this.tableDefinition.prefixDevider)
 
   preparePrefixSet = async (key: string, metadata: Metadata, options?: SetOptions) => {
-    const sanitizedMetadata = pick(metadata, this.tableDefinition.properties)
     const currentPrefixKeys = await this.getPrefixKeys(key)
 
     // Prefix keys with metadata
     const prefixKeys = this.createPrefixKeys(key, metadata)
-    const dataPrefix = prefixKeys.map<KeyValuePair>(k => ({ key: k, value: '', metadata: sanitizedMetadata, ...options }))
+    const dataPrefix = prefixKeys.map<KeyValuePair>(k => ({ key: k, value: '', metadata, ...options }))
 
     // Key with prefix keys [need this to delete keys]
     const prefixDataKey = this.createPrefixDataKey(key)
@@ -122,12 +118,11 @@ export default class KVTable<Metadata, Value> {
   }
 
   prepareSet = async (key: string, metadata: Metadata, value?: Value, options?: SetOptions) => {
-    const sanitizedMetadata = pick(metadata, this.tableDefinition.properties)
     const dataKey = this.createDataKey(key)
 
     const _value = value ? JSON.stringify(value) : ''
 
-    const data = { key: dataKey, value: _value, metadata: sanitizedMetadata, ...options } as KeyValuePair
+    const data = { key: dataKey, value: _value, metadata, ...options } as KeyValuePair
 
     const { dataToWrite, keysToDelete } = await this.preparePrefixSet(key, metadata, options)
     return {
@@ -149,8 +144,9 @@ export default class KVTable<Metadata, Value> {
 
   prepareDel = async (key: string) => {
     const prefixKeys = await this.getPrefixKeys(key)
+    const prefixDataKey = this.createPrefixDataKey(key)
     const dataKey = this.createDataKey(key)
-    return [dataKey, ...prefixKeys]
+    return [dataKey, prefixDataKey, ...prefixKeys]
   }
 
   del = async (key: string) => {

@@ -122,7 +122,7 @@ export default class KVApi {
     })
   }
 
-  useKVTable = <T>(tableDefinition: KVTableDefinition<T>) => {
+  useKVTable = <Metadata, Value>(tableDefinition: KVTableDefinition<Metadata, Value>) => {
     return new KVTable({ kvApi: this, tableDefinition })
   }
 

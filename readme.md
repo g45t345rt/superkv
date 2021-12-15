@@ -38,7 +38,6 @@ interface User {
 
 const userTableDefinition = {
   name: 'users',
-  properties: ['username', 'points', 'active', 'timestamp']
   prefix: {
     'username': {
       keyValue: (metadata) => metadata.username
@@ -199,7 +198,7 @@ const result_info = res.result_info
 #### Initialize
 
 ```ts
-const tableDefinition = { name, properties, prefix, ... }
+const tableDefinition = { name, prefix, ... }
 const kvUser = kvApi.useKVTable<Metadata>(tableDefinition)
 // or
 const kvUser = new KVTable<Metadata>({ kvApi, tableDefinition })

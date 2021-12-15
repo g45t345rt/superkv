@@ -49,6 +49,7 @@ test('Test kvTable', async () => {
   // Get active users
   let prefix = kvUsers.createPrefixKey('isActive', 'true')
   let list = await kvUsers.list({ prefix })
+  console.log(metadataUsers.filter(u => u.metadata.active), list.result)
   expect(metadataUsers.filter(u => u.metadata.active)).toEqual(list.result)
 
   // Get inactive users

@@ -1,6 +1,6 @@
 {
   "name": "superkv",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": "g45t345rt",
   "license": "ISC",
   "description": "Store Cloudflare KV with more control and power",
@@ -22,8 +22,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "form-data": "^4.0.0",
-    "lodash.pick": "^4.4.0"
+    "form-data": "^4.0.0"
   },
   "devDependencies": {
     "@types/jest": "^27.0.3",

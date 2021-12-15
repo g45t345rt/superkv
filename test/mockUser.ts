@@ -17,15 +17,10 @@ export interface UserValue extends User {
   description: string
 }
 
-export const userProperties = [
-  'username', 'email', 'active', 'points', 'timestamp', 'description'
-]
-
 const toUnix = (date: Date) => date.getTime()
 
 export const userKVTableDefinition = {
   name: 'users',
-  properties: userProperties,
   prefix: {
     'email': {
       keyValue: (user) => user.email
@@ -43,7 +38,7 @@ export const userKVTableDefinition = {
       sortValue: (user) => user.active ? 'true' : 'false'
     }
   }
-} as KVTableDefinition<User>
+} as KVTableDefinition<User, UserValue>
 
 
 export const mockUser = () => {
