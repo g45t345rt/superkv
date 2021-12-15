@@ -162,16 +162,16 @@ export default class KVTable<Metadata, Value> {
     return result[0].metadata
   }
 
-  getValue = async (key: string): Promise<Value> => {
+  getValue = async (key: string) => {
     const dataKey = this.createDataKey(key)
-    const res = await this.kvApi.readKeyValuePair(dataKey)
+    const res = await this.kvApi.readKeyValuePair<Value>(dataKey)
     if (res.success) return res.result
     return null
   }
 
-  getPrefixKeys = async (key: string): Promise<string[]> => {
+  getPrefixKeys = async (key: string) => {
     const prefixDataKey = this.createPrefixDataKey(key)
-    const res = await this.kvApi.readKeyValuePair(prefixDataKey)
+    const res = await this.kvApi.readKeyValuePair<string[]>(prefixDataKey)
     if (!res.success) return []
     return res.result
   }

@@ -45,7 +45,7 @@ export default class KVBig {
 
     for (let i = 0; i < totalShards; i++) {
       const shardKey = this.createShardKey(key, i)
-      const res = await this.kvApi.readKeyValuePair(shardKey)
+      const res = await this.kvApi.readKeyValuePair<string>(shardKey)
       if (!res.success) throw res
 
       const chunk = Buffer.from(res.result, this.options.encoding)

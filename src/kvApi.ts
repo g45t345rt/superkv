@@ -5,6 +5,7 @@ import KVBig, { KVBigOptions } from './kvBig'
 import { KVTableDefinition, SetOptions } from './kvtable'
 import KVBatch from './kvBatch'
 import KVTable from './kvTable'
+import KVItem from './kvItem'
 
 interface KVApiArgs {
   kvNamespaceApi: KVNamespaceApi
@@ -53,7 +54,7 @@ export default class KVApi {
     return this.kvNamespaceApi.fetch(`/${this.namespaceId}${path}`, init)
   }
 
-  readKeyValuePair = async (key: string): Promise<NamespaceResponse<any>> => {
+  readKeyValuePair = async <T>(key: string): Promise<NamespaceResponse<T>> => {
     const res = await this.fetch(`/values/${key}`, {
       method: 'GET'
     })
@@ -65,7 +66,7 @@ export default class KVApi {
     return { success: true, result: res, errors: [], messages: [] }
   }
 
-  writeKeyValuePair = (key: string, value: string, metadata?: any, options?: SetOptions) => {
+  writeKeyValuePair = (key: string, value: string, metadata?: any, options?: SetOptions): Promise<NamespaceResponse<void>> => {
     const initParams = {}
     if (options) {
       if (options.expiration) initParams['expiration'] = options.expiration
@@ -132,5 +133,9 @@ export default class KVApi {
 
   useKVBig = (options?: KVBigOptions) => {
     return new KVBig({ kvApi: this }, options)
+  }
+
+  useKVItem = <T>(key: string) => {
+    return new KVItem<T>({ kvApi: this, key })
   }
 }

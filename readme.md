@@ -14,9 +14,9 @@ Store Cloudflare KV with more control and power.
 
 ## Why / Limits / Warning
 
-- I made this because I simply wanted to have more control over the KV storage.
+- I made this because I want more control with KV storage.
 - If you have ideas or you know how to optimize/fix things please help :)
-- KV uses ascending lexicographical order use ULID to sort descending <https://www.npmjs.com/package/ulidx>
+- KV uses ascending lexicographical order. You have to use ULID to sort descending <https://www.npmjs.com/package/ulidx>
 - I have no prior knowledge in making a tool for data management and this is the best I could come up with.
 
 ## How to use it
