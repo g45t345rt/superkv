@@ -1,5 +1,4 @@
-import KVApi, { KeyValuePair } from './kvApi'
-import KVTable, { SetOptions } from './kvTable'
+import KVApi, { KeyValuePair, SetOptions } from './kvApi'
 import DispatchAfter from './dispatchAfter'
 
 interface KVBatchArgs {
@@ -8,10 +7,9 @@ interface KVBatchArgs {
 
 export interface KVBatchOptions {
   chunkSize?: number
-  kvTable?: KVTable<any, any>
 }
 
-export default class KVBatch<Metadata, Value> {
+export default class KVBatch {
   kvApi: KVApi
   options: KVBatchOptions
   writeDispatcher: DispatchAfter<KeyValuePair>
@@ -37,26 +35,18 @@ export default class KVBatch<Metadata, Value> {
     })
   }
 
-  set = async (key: string, metadata: Metadata, value?: Value, options?: SetOptions) => {
-    const { kvTable } = this.options
-    if (kvTable) {
-      const { dataToWrite, keysToDelete } = await kvTable.prepareSet(key, metadata, value, options)
-      await this.writeDispatcher.set(dataToWrite)
-      await this.deleteDispatcher.set(keysToDelete)
-    } else {
-      const keyValuePair = { key, metadata, value: value || '', ...options } as KeyValuePair
-      this.writeDispatcher.set(keyValuePair)
-    }
+  setPair = async (keyValuePair: KeyValuePair | KeyValuePair[]) => {
+    await this.writeDispatcher.set(keyValuePair)
   }
 
-  del = async (key: string) => {
-    const { kvTable } = this.options
-    if (kvTable) {
-      const keysToDelete = await kvTable.prepareDel(key)
-      await this.deleteDispatcher.set(keysToDelete)
-    } else {
-      await this.deleteDispatcher.set(key)
-    }
+  set = async <Metadata, Value>(key: string, metadata: Metadata, value?: Value, options?: SetOptions) => {
+    const _value = value ? JSON.stringify(value) : ''
+    const keyValuePair = { key, metadata, value: _value, ...options } as KeyValuePair
+    await this.writeDispatcher.set(keyValuePair)
+  }
+
+  del = async (key: string | string[]) => {
+    await this.deleteDispatcher.set(key)
   }
 
   finish = async () => {

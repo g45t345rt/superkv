@@ -2,13 +2,18 @@ import FormData from 'form-data'
 
 import KVNamespaceApi, { NamespaceResponse } from './kvNamespaceApi'
 import KVBig, { KVBigOptions } from './kvBig'
-import KVTable, { KVTableDefinition, SetOptions } from './kvTable'
-import KVBatch from './kvBatch'
+import KVTable, { KVTableDefinition } from './kvTable'
+import KVBatch, { KVBatchOptions } from './kvBatch'
 import KVItem from './kvItem'
 
 interface KVApiArgs {
   kvNamespaceApi: KVNamespaceApi
   namespaceId: string
+}
+
+export interface SetOptions {
+  expiration?: number
+  expiration_ttl?: number
 }
 
 export interface KeyValuePair {
@@ -122,11 +127,11 @@ export default class KVApi {
     })
   }
 
-  useKVTable = <Metadata, Value>(tableDefinition: KVTableDefinition<Metadata, Value>) => {
-    return new KVTable({ kvApi: this, tableDefinition })
+  useKVTable = <Metadata, Value>(tableDefinition: KVTableDefinition<Metadata>) => {
+    return new KVTable<Metadata, Value>({ kvApi: this, tableDefinition })
   }
 
-  useKVBatch = (options?: KVBigOptions) => {
+  useKVBatch = (options?: KVBatchOptions) => {
     return new KVBatch({ kvApi: this }, options)
   }
 

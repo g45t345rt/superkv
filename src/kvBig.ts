@@ -65,10 +65,8 @@ export default class KVBig {
       dataSize = 0
       chunks = []
 
-      console.log('Writing keyValuePair', buffer.length)
       const shardKey = this.createShardKey(key, shardNumber)
       await this.kvApi.writeKeyValuePair(shardKey, buffer.toString(this.options.encoding), {})
-      console.log('Done', shardNumber)
       shardNumber++
     }
 
@@ -80,7 +78,6 @@ export default class KVBig {
 
       chunks.push(chunk)
       dataSize += chunkSize
-      console.log('New chunk', dataSize)
     }
 
     await sendChunk() // send rest if any

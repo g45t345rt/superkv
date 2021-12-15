@@ -38,7 +38,7 @@ export const userKVTableDefinition = {
       sortValue: (user) => user.active ? 'true' : 'false'
     }
   }
-} as KVTableDefinition<User, UserValue>
+} as KVTableDefinition<User>
 
 
 export const mockUser = () => {

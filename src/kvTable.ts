@@ -1,5 +1,4 @@
-import KVApi, { KeyValuePair } from './kvApi'
-import KVBatch from './kvBatch'
+import KVApi, { KeyValuePair, SetOptions } from './kvApi'
 import DispatchAfter from './dispatchAfter'
 
 export interface Prefix<Metadata> {
@@ -10,20 +9,15 @@ export interface Prefix<Metadata> {
   }
 }
 
-export interface SetOptions {
-  expiration?: number
-  expiration_ttl?: number
-}
-
-export interface KVTableDefinition<Metadata, Value> {
+export interface KVTableDefinition<Metadata> {
   name: string
   prefix?: Prefix<Metadata>
   prefixDevider?: string
 }
 
-interface KVTableArgs<Metadata, Value> {
+interface KVTableArgs<Metadata> {
   kvApi: KVApi
-  tableDefinition: KVTableDefinition<Metadata, Value>
+  tableDefinition: KVTableDefinition<Metadata>
 }
 
 interface ListResponse<Metadata> {
@@ -43,9 +37,9 @@ export interface ListOptions {
 
 export default class KVTable<Metadata, Value> {
   kvApi: KVApi
-  tableDefinition: KVTableDefinition<Metadata, Value>
+  tableDefinition: KVTableDefinition<Metadata>
 
-  constructor(args: KVTableArgs<Metadata, Value>) {
+  constructor(args: KVTableArgs<Metadata>) {
     const { kvApi, tableDefinition } = args
     this.kvApi = kvApi
     this.tableDefinition = { prefix: {}, prefixDevider: '~~', ...tableDefinition }
@@ -97,9 +91,7 @@ export default class KVTable<Metadata, Value> {
 
   toKey = (args: string[]) => args.filter(i => !!i).join(this.tableDefinition.prefixDevider)
 
-  preparePrefixSet = async (key: string, metadata: Metadata, options?: SetOptions) => {
-    const currentPrefixKeys = await this.getPrefixKeys(key)
-
+  preparePrefixSet = async (key: string, metadata: Metadata, options: SetOptions = {}) => {
     // Prefix keys with metadata
     const prefixKeys = this.createPrefixKeys(key, metadata)
     const dataPrefix = prefixKeys.map<KeyValuePair>(k => ({ key: k, value: '', metadata, ...options }))
@@ -107,14 +99,11 @@ export default class KVTable<Metadata, Value> {
     // Key with prefix keys [need this to delete keys]
     const prefixDataKey = this.createPrefixDataKey(key)
     const prefixData = { key: prefixDataKey, value: JSON.stringify(prefixKeys), ...options } as KeyValuePair
-
     const dataToWrite = [...dataPrefix, prefixData]
-    const keysToDelete = currentPrefixKeys.filter((k) => prefixKeys.includes(k))
 
-    return {
-      dataToWrite,
-      keysToDelete
-    }
+    const currentPrefixKeys = await this.getPrefixKeys(key)
+    const keysToDelete = currentPrefixKeys.filter((k) => prefixKeys.includes(k))
+    return { dataToWrite, keysToDelete }
   }
 
   prepareSet = async (key: string, metadata: Metadata, value?: Value, options?: SetOptions) => {
@@ -265,9 +254,5 @@ export default class KVTable<Metadata, Value> {
     }
 
     await deleteDispatcher.finish()
-  }
-
-  useBatch = (chunkSize?: number) => {
-    return new KVBatch<Metadata, Value>({ kvApi: this.kvApi }, { kvTable: this, chunkSize })
   }
 }
