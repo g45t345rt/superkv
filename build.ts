@@ -14,6 +14,8 @@ Object.keys(formats).forEach(key => {
     entryPoints: [
       './src/index.ts',
     ],
+    external: ['form-data'],
+    bundle: true,
     format: key as esbuild.Format,
     outExtension: { '.js': extension },
     outdir: `./dist`

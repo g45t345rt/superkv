@@ -1,5 +1,4 @@
-import { KVNamespaceApi } from '../src'
-import { KeyValuePair } from '../src/kvapi'
+import { KVNamespaceApi, KeyValuePair } from '../src'
 import { mockUsers } from './mockUser'
 
 const accountId = process.env.ACCOUNT_ID

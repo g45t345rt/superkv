@@ -1,5 +1,5 @@
 import KVNamespaceApi from './kvNamespaceApi'
-import KVApi, { KeyValuePair } from './kvapi'
+import KVApi, { KeyValuePair } from './kvApi'
 import KVTable, { KVTableDefinition, ListOptions } from './kvTable'
 import KVBatch from './kvBatch'
 import KVBig from './kvBig'
