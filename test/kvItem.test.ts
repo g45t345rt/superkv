@@ -14,6 +14,10 @@ test('Test kvItem', async () => {
   const namepsace = await kvNamespaceApi.resetAndGetNamespace('kvItem_test')
   const kvApi = kvNamespaceApi.useKVApi(namepsace.id)
 
+  const kvNotFoundItem = kvApi.useKVItem<Item>('asdfgwkergkwem')
+
+  await expect(kvNotFoundItem.get()).rejects.toThrowError()
+
   const kvItem = kvApi.useKVItem<Item>('single_key')
 
   const itemData = { name: 'test', description: 'lorem ipsum' }

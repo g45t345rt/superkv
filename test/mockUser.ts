@@ -1,6 +1,5 @@
 import { nanoid } from 'nanoid'
 import faker, { array } from 'minifaker'
-import { ulid } from 'ulid'
 import 'minifaker/dist/locales/en'
 
 import { KVTableDefinition } from '../src/kvTable'
@@ -29,7 +28,7 @@ export const userKVTableDefinition = {
       keyValue: (user) => user.username
     },
     'timestamp_desc': {
-      sortValue: (user) => ulid(user.timestamp),
+      sortValue: (user) => `${1000000000000000 - user.timestamp}`,
     },
     '>500points': {
       filter: (user) => user.points > 500,

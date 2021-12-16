@@ -102,7 +102,7 @@ export default class KVTable<Metadata, Value> {
     const dataToWrite = [...dataPrefix, prefixData]
 
     const currentPrefixKeys = await this.getPrefixKeys(key)
-    const keysToDelete = currentPrefixKeys.filter((k) => prefixKeys.includes(k))
+    const keysToDelete = currentPrefixKeys.filter((k) => !prefixKeys.includes(k))
     return { dataToWrite, keysToDelete }
   }
 
