@@ -190,7 +190,7 @@ export default class KVTable<Metadata, Value> {
     const next = async () => {
       const list = await this.list({ cursor, limit: 1000, prefix })
       cursor = list.cursor
-      const done = cursor === null
+      const done = cursor === ''
       return { value: list.result, done }
     }
 
@@ -201,26 +201,32 @@ export default class KVTable<Metadata, Value> {
     const kvBatch = new KVBatch({ kvApi: this.kvApi }, { chunkSize })
     const prefix = this.createDataKey()
     const it = this.iterator(prefix)
-    let result = await it.next()
-    while (!result.done) {
+
+    let done = false
+    while (!done) {
+      const result = await it.next()
       const list = result.value
+
       for (let i = 0; i < list.length; i++) {
         const { key, metadata, expiration } = list[i]
         const { dataToWrite, keysToDelete } = await this.preparePrefixSet(key, metadata, { expiration })
         await kvBatch.delMulti(keysToDelete)
         await kvBatch.setMulti(dataToWrite)
       }
+
+      done = result.done
     }
 
     await kvBatch.finish()
   }
 
-  delPrefix = async (prefixName: string, chunk?: number) => {
-    const kvBatch = new KVBatch({ kvApi: this.kvApi })
+  delPrefix = async (prefixName: string, chunkSize?: number) => {
+    const kvBatch = new KVBatch({ kvApi: this.kvApi }, { chunkSize })
     const prefix = this.createPrefixKey(prefixName)
     const it = this.iterator(prefix)
-    let result = await it.next()
-    while (!result.done) {
+    let done = false
+    while (!done) {
+      let result = await it.next()
       const keys = result.value.map(v => v.key)
       for (let i = 0; i < keys.length; i++) {
         const key = keys[i]
@@ -228,7 +234,7 @@ export default class KVTable<Metadata, Value> {
         await kvBatch.del(key)
       }
 
-      result = await it.next()
+      done = result.done
     }
 
     await kvBatch.finish()

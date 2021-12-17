@@ -1,6 +1,6 @@
 {
   "name": "superkv",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "author": "g45t345rt",
   "license": "ISC",
   "description": "Store Cloudflare KV with more control and power",
@@ -19,6 +19,7 @@
     "test:kvBig": "jest -i test/kvBig.test.ts",
     "test:kvBatch": "jest -i test/kvBatch.test.ts",
     "test:kvItem": "jest -i test/kvItem.test.ts",
+    "test:updatePrefix": "jest -i test/updatePrefix.test.ts",
     "test:dist": "jest -i test/dist.test.ts",
     "build": "ts-node build.ts && tsc --emitDeclarationOnly --outDir dist",
     "prepublishOnly": "npm run build"
