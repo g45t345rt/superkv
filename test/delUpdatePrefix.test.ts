@@ -20,5 +20,17 @@ test('Test kvTable', async () => {
     await kvUsers.set(user.key, user.metadata, user.value)
   }
 
+  const metadataUsers = users.sort((a, b) => a.key > b.key ? 1 : -1).map((u) => ({ key: u.key, metadata: u.metadata }))
+
+  await kvUsers.delPrefix('timestamp_desc')
+
+  await sleep(1000)
+  const prefix = kvUsers.createPrefixKey('timestamp_desc')
+  let res = await kvUsers.list({ prefix })
+  expect(res.result.length).toBe(0)
+
   await kvUsers.updatePrefix()
+  await sleep(1000)
+  res = await kvUsers.list({ prefix })
+  expect(res.result.map((r) => ({ key: r.key, metadata: r.metadata, expiration: r.expiration }))).toEqual(metadataUsers.sort((a, b) => b.metadata.timestamp - a.metadata.timestamp))
 })

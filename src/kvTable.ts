@@ -22,6 +22,7 @@ interface KVTableArgs<Metadata> {
 
 interface ListResponse<Metadata> {
   result: {
+    prefixKey: string
     key: string
     metadata: Metadata
     expiration?: number
@@ -177,8 +178,8 @@ export default class KVTable<Metadata, Value> {
       result: res.result.map((r) => {
         const { name, expiration, metadata } = r
         const key = parseKey(name)
-        if (expiration) return { key, metadata, expiration }
-        return { key, metadata }
+        if (expiration) return { key, prefixKey: name, metadata, expiration }
+        return { key, prefixKey: name, metadata }
       }),
       cursor: res.result_info.cursor
     }
@@ -227,11 +228,11 @@ export default class KVTable<Metadata, Value> {
     let done = false
     while (!done) {
       let result = await it.next()
-      const keys = result.value.map(v => v.key)
-      for (let i = 0; i < keys.length; i++) {
-        const key = keys[i]
+      const prefixKeys = result.value.map(v => v.prefixKey)
+      for (let i = 0; i < prefixKeys.length; i++) {
+        const prefixKey = prefixKeys[i]
         // Maybe remove the prefixKey from the prefixData of the dataKey ??? will keep it for now because it does not change anything and avoid more requests
-        await kvBatch.del(key)
+        await kvBatch.del(prefixKey)
       }
 
       done = result.done
