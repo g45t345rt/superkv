@@ -9,14 +9,17 @@ test('Test kvBatch with kvTable', async () => {
   const namespace = await kvNamespaceApi.resetAndGetNamespace('kbBatch_test')
 
   const kvApi = kvNamespaceApi.useKVApi(namespace.id)
-  const kvUsers = kvApi.useKVTable(userKVTableDefinition)
+  //const kvUsers = kvApi.useKVTable(userKVTableDefinition)
   const kvBatch = kvApi.useKVBatch()
 
   const userCount = 10
   const users = mockUsers(userCount)
   for (let i = 0; i < users.length; i++) {
     const user = users[i]
-    await kvBatch.set(user.key, user.metadata)
+    await kvBatch.set({ key: user.key, metadata: user.metadata, value: '' })
+    if (i % 2 === 0) { // even
+      await kvBatch.del(user.key)
+    }
   }
 
   await kvBatch.finish()

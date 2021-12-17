@@ -1,5 +1,4 @@
 import KVApi, { KeyValuePair, SetOptions } from './kvApi'
-import DispatchAfter from './dispatchAfter'
 import KVTable from './kvTable'
 
 interface KVBatchArgs {
@@ -13,56 +12,69 @@ export interface KVBatchOptions {
 export default class KVBatch {
   kvApi: KVApi
   options: KVBatchOptions
-  writeDispatcher: DispatchAfter<KeyValuePair>
-  deleteDispatcher: DispatchAfter<string>
+  dataToWrite: Map<string, KeyValuePair>
+  keysToDelete: Map<string, void>
 
   constructor(args: KVBatchArgs, options: KVBatchOptions = {}) {
     const { kvApi } = args
     this.kvApi = kvApi
     this.options = { chunkSize: 10000, ...options }
 
-    this.writeDispatcher = new DispatchAfter<KeyValuePair>({
-      max: this.options.chunkSize,
-      onDispatch: async (keyValuePairs) => {
-        await this.kvApi.writeMultipleKeyValuePairs(keyValuePairs)
-      }
-    })
-
-    this.deleteDispatcher = new DispatchAfter<string>({
-      max: this.options.chunkSize,
-      onDispatch: async (keys) => {
-        await this.kvApi.deleteMultipleKeyValuePairs(keys)
-      }
-    })
+    this.dataToWrite = new Map()
+    this.keysToDelete = new Map()
   }
 
-  setFromPair = async (keyValuePair: KeyValuePair | KeyValuePair[]) => {
-    await this.writeDispatcher.set(keyValuePair)
-  }
+  send = async ({ force } = { force: false }) => {
+    if (this.dataToWrite.size >= this.options.chunkSize || force) {
+      const keyValuePairs = [...this.dataToWrite].map(([k, v]) => v)
+      await this.kvApi.writeMultipleKeyValuePairs(keyValuePairs)
+    }
 
-  set = async <Metadata, Value>(key: string, metadata: Metadata, value?: Value, options?: SetOptions) => {
-    const _value = value ? JSON.stringify(value) : ''
-    const keyValuePair = { key, metadata, value: _value, ...options } as KeyValuePair
-    await this.writeDispatcher.set(keyValuePair)
+    if (this.keysToDelete.size >= this.options.chunkSize || force) {
+      const keys = [...this.keysToDelete].map(([k]) => k)
+      await this.kvApi.deleteMultipleKeyValuePairs(keys)
+    }
   }
 
   setToTable = async <Metadata, Value>(kvTable: KVTable<Metadata, Value>, key: string, metadata: Metadata, value?: Value, options?: SetOptions) => {
     const { dataToWrite, keysToDelete } = await kvTable.prepareSet(key, metadata, value, options)
-    await this.deleteDispatcher.set(keysToDelete) // delete before adding new values -- avoid deleting new values after adding them in batch!!
-    await this.writeDispatcher.set(dataToWrite)
+
+    await this.delMulti(keysToDelete)
+    await this.setMulti(dataToWrite)
   }
 
   delFromTable = async (kvTable: KVTable<any, any>, key: string) => {
-    const keysToDelete = await kvTable.prepareDel(key as string)
-    await this.deleteDispatcher.set(keysToDelete)
+    const keysToDelete = await kvTable.prepareDel(key)
+    await this.delMulti(keysToDelete)
   }
 
-  del = async (key: string | string[], kvTable?: KVTable<any, any>) => {
-    await this.deleteDispatcher.set(key)
+  setMulti = async (keyValuePairs: KeyValuePair[]) => {
+    for (let i = 0; keyValuePairs.length; i++) {
+      const keyValuePair = keyValuePairs[i]
+      await this.set(keyValuePair)
+    }
+  }
+
+  set = async (keyValuePair: KeyValuePair) => {
+    const { key } = keyValuePair
+    this.keysToDelete.delete(key)
+    this.dataToWrite.set(key, keyValuePair)
+    await this.send()
+  }
+
+  delMulti = async (keys: string[]) => {
+    for (let i = 0; keys.length; i++) {
+      await this.del(keys[i])
+    }
+  }
+
+  del = async (key: string) => {
+    this.dataToWrite.delete(key)
+    this.keysToDelete.set(key)
+    await this.send()
   }
 
   finish = async () => {
-    await this.deleteDispatcher.finish() // always delete first before adding new values
-    await this.writeDispatcher.finish()
+    await this.send({ force: true })
   }
 }

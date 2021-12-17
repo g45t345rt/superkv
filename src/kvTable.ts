@@ -1,5 +1,5 @@
 import KVApi, { KeyValuePair, SetOptions } from './kvApi'
-import DispatchAfter from './dispatchAfter'
+import KVBatch from './kvBatch'
 
 export interface Prefix<Metadata> {
   [key: string]: {
@@ -120,12 +120,13 @@ export default class KVTable<Metadata, Value> {
 
   set = async (key: string, metadata: Metadata, value?: Value, options?: SetOptions) => {
     const { dataToWrite, keysToDelete } = await this.prepareSet(key, metadata, value, options)
-    if (keysToDelete.length === 0) return
-    const res2 = await this.kvApi.deleteMultipleKeyValuePairs(keysToDelete)
-    if (!res2.success) throw res2
 
     const res1 = await this.kvApi.writeMultipleKeyValuePairs(dataToWrite)
     if (!res1.success) throw res1
+
+    if (keysToDelete.length === 0) return
+    const res2 = await this.kvApi.deleteMultipleKeyValuePairs(keysToDelete)
+    if (!res2.success) throw res2
   }
 
   prepareDel = async (key: string) => {
@@ -196,21 +197,8 @@ export default class KVTable<Metadata, Value> {
     return { next }
   }
 
-  updatePrefix = async (chunk?: number) => {
-    const writeDispatcher = new DispatchAfter<KeyValuePair>({
-      max: chunk || 10000,
-      onDispatch: async (keyValuePairs) => {
-        await this.kvApi.writeMultipleKeyValuePairs(keyValuePairs)
-      }
-    })
-
-    const deleteDispatcher = new DispatchAfter<string>({
-      max: chunk || 10000,
-      onDispatch: async (keys) => {
-        await this.kvApi.deleteMultipleKeyValuePairs(keys)
-      }
-    })
-
+  updatePrefix = async (chunkSize?: number) => {
+    const kvBatch = new KVBatch({ kvApi: this.kvApi }, { chunkSize })
     const prefix = this.createDataKey()
     const it = this.iterator(prefix)
     let result = await it.next()
@@ -219,23 +207,16 @@ export default class KVTable<Metadata, Value> {
       for (let i = 0; i < list.length; i++) {
         const { key, metadata, expiration } = list[i]
         const { dataToWrite, keysToDelete } = await this.preparePrefixSet(key, metadata, { expiration })
-        await writeDispatcher.set(dataToWrite)
-        await deleteDispatcher.set(keysToDelete)
+        await kvBatch.delMulti(keysToDelete)
+        await kvBatch.setMulti(dataToWrite)
       }
     }
 
-    await writeDispatcher.finish()
-    await deleteDispatcher.finish()
+    await kvBatch.finish()
   }
 
   delPrefix = async (prefixName: string, chunk?: number) => {
-    const deleteDispatcher = new DispatchAfter<string>({
-      max: chunk || 10000,
-      onDispatch: async (keys) => {
-        await this.kvApi.deleteMultipleKeyValuePairs(keys)
-      }
-    })
-
+    const kvBatch = new KVBatch({ kvApi: this.kvApi })
     const prefix = this.createPrefixKey(prefixName)
     const it = this.iterator(prefix)
     let result = await it.next()
@@ -243,13 +224,13 @@ export default class KVTable<Metadata, Value> {
       const keys = result.value.map(v => v.key)
       for (let i = 0; i < keys.length; i++) {
         const key = keys[i]
-        // Maybe remove the prefixKey from the prefixData of the dataKey ??? will keep it because it does not change anything and avoid more requests
-        await deleteDispatcher.set(key)
+        // Maybe remove the prefixKey from the prefixData of the dataKey ??? will keep it for now because it does not change anything and avoid more requests
+        await kvBatch.del(key)
       }
 
       result = await it.next()
     }
 
-    await deleteDispatcher.finish()
+    await kvBatch.finish()
   }
 }
