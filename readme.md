@@ -19,6 +19,10 @@ Store Cloudflare KV with more control and power.
 - KV uses ascending lexicographical order. You have to use ULID to sort descending <https://www.npmjs.com/package/ulidx>
 - I have no prior knowledge in making a tool for data management and this is the best I could come up with.
 
+## TODO
+
+- Local KV api emulator
+
 ## How to use it
 
 For more example check `test` folder

@@ -120,13 +120,12 @@ export default class KVTable<Metadata, Value> {
 
   set = async (key: string, metadata: Metadata, value?: Value, options?: SetOptions) => {
     const { dataToWrite, keysToDelete } = await this.prepareSet(key, metadata, value, options)
-    const res1 = await this.kvApi.writeMultipleKeyValuePairs(dataToWrite)
-    if (!res1.success) throw res1
-
-
     if (keysToDelete.length === 0) return
     const res2 = await this.kvApi.deleteMultipleKeyValuePairs(keysToDelete)
     if (!res2.success) throw res2
+
+    const res1 = await this.kvApi.writeMultipleKeyValuePairs(dataToWrite)
+    if (!res1.success) throw res1
   }
 
   prepareDel = async (key: string) => {

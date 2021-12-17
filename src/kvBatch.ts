@@ -48,8 +48,8 @@ export default class KVBatch {
 
   setToTable = async <Metadata, Value>(kvTable: KVTable<Metadata, Value>, key: string, metadata: Metadata, value?: Value, options?: SetOptions) => {
     const { dataToWrite, keysToDelete } = await kvTable.prepareSet(key, metadata, value, options)
+    await this.deleteDispatcher.set(keysToDelete) // delete before adding new values -- avoid deleting new values after adding them in batch!!
     await this.writeDispatcher.set(dataToWrite)
-    await this.deleteDispatcher.set(keysToDelete)
   }
 
   delFromTable = async (kvTable: KVTable<any, any>, key: string) => {
@@ -62,7 +62,7 @@ export default class KVBatch {
   }
 
   finish = async () => {
+    await this.deleteDispatcher.finish() // always delete first before adding new values
     await this.writeDispatcher.finish()
-    await this.deleteDispatcher.finish()
   }
 }
