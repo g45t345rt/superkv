@@ -1,6 +1,6 @@
 {
   "name": "superkv",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "author": "g45t345rt",
   "license": "ISC",
   "description": "Store Cloudflare KV with more control and power",

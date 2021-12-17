@@ -16,11 +16,15 @@ test('Test kvBatch with kvTable', async () => {
   const users = mockUsers(userCount)
   for (let i = 0; i < users.length; i++) {
     const user = users[i]
-    await kvBatch.set({ key: user.key, metadata: user.metadata, value: '' })
+    await kvBatch.set({ key: user.key, metadata: user.metadata, value: JSON.stringify(user.value) })
     if (i % 2 === 0) { // even
       await kvBatch.del(user.key)
     }
   }
+
+  const keyValuePairs = users.map((user) => ({ key: user.key, metadata: user.metadata, value: JSON.stringify(user.value) }))
+  await kvBatch.setMulti(keyValuePairs)
+  await kvBatch.delMulti(users.slice(0, 2).map(({ key }) => key))
 
   await kvBatch.finish()
 

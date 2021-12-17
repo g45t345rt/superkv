@@ -49,7 +49,7 @@ export default class KVBatch {
   }
 
   setMulti = async (keyValuePairs: KeyValuePair[]) => {
-    for (let i = 0; keyValuePairs.length; i++) {
+    for (let i = 0; i < keyValuePairs.length; i++) {
       const keyValuePair = keyValuePairs[i]
       await this.set(keyValuePair)
     }
@@ -63,7 +63,7 @@ export default class KVBatch {
   }
 
   delMulti = async (keys: string[]) => {
-    for (let i = 0; keys.length; i++) {
+    for (let i = 0; i < keys.length; i++) {
       await this.del(keys[i])
     }
   }
