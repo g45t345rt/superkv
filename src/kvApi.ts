@@ -82,12 +82,18 @@ export default class KVApi {
     formData.append('value', value)
     formData.append('metadata', JSON.stringify(metadata || {}))
 
+    // no getBoundary with window.FormData + we need contentType to be undefined when using browser FormData
+    let contentType = undefined // https://stackoverflow.com/questions/40351429/formdata-how-to-get-or-set-boundary-in-multipart-form-data-angular
+    if (typeof formData.getBoundary === 'function') {
+      contentType = `multipart/form-data; boundary=${formData.getBoundary()}`
+    }
+
     return this.fetch(`/values/${key}?${params}`, {
       method: 'PUT',
       // @ts-ignore
       body: formData,
       headers: {
-        'Content-Type': `multipart/form-data; boundary=${formData.getBoundary()}`
+        'Content-Type': contentType
       },
     })
   }
