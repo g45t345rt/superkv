@@ -151,7 +151,7 @@ export default class KVApi {
     return new KVBig({ kvApi: this }, options)
   }
 
-  useKVItem = <T>(key: string) => {
-    return new KVItem<T>({ kvApi: this, key })
+  useKVItem = <Value, Metadata = {}>(key: string) => {
+    return new KVItem<Value, Metadata>({ kvApi: this, key })
   }
 }

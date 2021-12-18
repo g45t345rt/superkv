@@ -14,14 +14,22 @@ test('Test kvItem', async () => {
   const namepsace = await kvNamespaceApi.resetAndGetNamespace('kvItem_test')
   const kvApi = kvNamespaceApi.useKVApi(namepsace.id)
 
-  //const kvNotFoundItem = kvApi.useKVItem<Item>('asdfgwkergkwem')
+  const kvNotFoundItem = kvApi.useKVItem<Item>('asdfgwkergkwem')
+
+  const notFoundValue = await kvNotFoundItem.getValue()
+  expect(notFoundValue).toBe(null)
+
   const kvItem = kvApi.useKVItem<Item>('single_key')
 
-  const itemData = { name: 'test', description: 'lorem ipsum' }
-  await kvItem.set(itemData)
+  const itemValue = { name: 'test', description: 'lorem ipsum' }
+  const itemMetadata = { hello: 'world' }
+  await kvItem.set(itemValue, itemMetadata)
 
-  const item = await kvItem.get()
-  expect(item).toEqual(itemData)
+  const _itemValue = await kvItem.getValue()
+  expect(_itemValue).toEqual(itemValue)
+
+  const _itemMetadata = await kvItem.getMetadata()
+  expect(_itemMetadata).toEqual(itemMetadata)
 
   await kvItem.del()
 })

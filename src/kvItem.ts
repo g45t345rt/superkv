@@ -1,11 +1,11 @@
-import KVApi from './kvApi'
+import KVApi, { SetOptions } from './kvApi'
 
 interface KVItemArgs {
   kvApi: KVApi
   key: string
 }
 
-export default class KVItem<Value> {
+export default class KVItem<Value, Metadata = {}> {
   kvApi: KVApi
   key: string
 
@@ -15,19 +15,23 @@ export default class KVItem<Value> {
     this.key = key
   }
 
-  set = async (value: Value) => {
-    const res = await this.kvApi.writeKeyValuePair(this.key, JSON.stringify(value))
-    if (!res.success) throw res
+  set = async (value: Value, metadata?: Metadata, setOptions?: SetOptions) => {
+    return this.kvApi.writeKeyValuePair(this.key, JSON.stringify(value), metadata, setOptions)
   }
 
-  get = async () => {
+  getValue = async () => {
     const res = await this.kvApi.readKeyValuePair<Value>(this.key)
-    if (!res.success) throw res
-    return res.result
+    if (res.success) return res.result
+    return null
   }
 
-  del = async () => {
-    const res = await this.kvApi.deleteKeyValuePair(this.key)
-    if (!res.success) throw res
+  getMetadata = async () => {
+    const res = await this.kvApi.listKeys<Metadata>({ prefix: this.key })
+    if (res.success && res.result.length > 0) return res.result[0].metadata
+    return null
+  }
+
+  del = () => {
+    return this.kvApi.deleteKeyValuePair(this.key)
   }
 }
