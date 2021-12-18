@@ -1,6 +1,6 @@
 {
   "name": "superkv",
-  "version": "1.8.4",
+  "version": "1.8.5",
   "author": "g45t345rt",
   "license": "ISC",
   "description": "Store Cloudflare KV with more control and power",
@@ -16,6 +16,7 @@
     "test:kvTable": "jest -i test/kvTable.test.ts",
     "test:kvNamespaceApi": "jest -i test/kvNamespaceApi.test.ts",
     "test:kvApi": "jest -i test/kvApi.test.ts",
+    "test:kvApi2": "jest -i test/kvApi2.test.ts",
     "test:kvBig": "jest -i test/kvBig.test.ts",
     "test:kvBatch": "jest -i test/kvBatch.test.ts",
     "test:kvItem": "jest -i test/kvItem.test.ts",
@@ -24,14 +25,12 @@
     "build": "ts-node build.ts && tsc --emitDeclarationOnly --outDir dist",
     "prepublishOnly": "npm run build"
   },
-  "dependencies": {
-    "form-data": "^4.0.0"
-  },
   "devDependencies": {
     "@types/jest": "^27.0.3",
     "dotenv": "^10.0.0",
     "esbuild": "^0.14.5",
     "isomorphic-fetch": "^3.0.0",
+    "isomorphic-form-data": "^2.0.0",
     "jest": "^27.4.5",
     "jest-extended": "^1.2.0",
     "minifaker": "^1.25.0",

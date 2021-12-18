@@ -1,5 +1,3 @@
-import FormData from 'form-data'
-
 import KVNamespaceApi, { NamespaceResponse } from './kvNamespaceApi'
 import KVBig, { KVBigOptions } from './kvBig'
 import KVTable, { KVTableDefinition } from './kvTable'
@@ -54,8 +52,8 @@ export default class KVApi {
     this.namespaceId = namespaceId
   }
 
-  fetch = async (path: string, init: RequestInit) => {
-    return this.kvNamespaceApi.fetch(`/${this.namespaceId}${path}`, init)
+  fetch = async (path: string, init: RequestInit, setJsonHeader = true) => {
+    return this.kvNamespaceApi.fetch(`/${this.namespaceId}${path}`, init, setJsonHeader)
   }
 
   readKeyValuePair = async <T>(key: string): Promise<NamespaceResponse<T>> => {
@@ -82,20 +80,28 @@ export default class KVApi {
     formData.append('value', value)
     formData.append('metadata', JSON.stringify(metadata || {}))
 
-    // no getBoundary with window.FormData + we need contentType to be undefined when using browser FormData
-    let contentType = undefined // https://stackoverflow.com/questions/40351429/formdata-how-to-get-or-set-boundary-in-multipart-form-data-angular
-    if (typeof formData.getBoundary === 'function') {
-      contentType = `multipart/form-data; boundary=${formData.getBoundary()}`
+    let headers = {}
+    //@ts-ignore
+    if (typeof formData.getHeaders === 'function') {
+      //@ts-ignore
+      headers = formData.getHeaders() // this is for request inside nodejs instead of using browser fetch
     }
+
+    /**
+     * https://developer.mozilla.org/en-US/docs/Web/API/FormData/Using_FormData_Objects
+     * Warning: When using FormData to submit POST requests using XMLHttpRequest or 
+     * the Fetch_API with the multipart/form-data Content-Type (e.g. when uploading Files and Blobs to the server), 
+     * do not explicitly set the Content-Type header on the request. 
+     * Doing so will prevent the browser from being able to set the Content-Type header 
+     * with the boundary expression it will use to delimit form fields in the request body.
+     */
 
     return this.fetch(`/values/${key}?${params}`, {
       method: 'PUT',
       // @ts-ignore
       body: formData,
-      headers: {
-        'Content-Type': contentType
-      },
-    })
+      headers
+    }, false) // we need to setJsonHeader to false -- reason explained above
   }
 
   writeMultipleKeyValuePairs = (keyValues: KeyValuePair[]): Promise<NamespaceResponse<void>> => {

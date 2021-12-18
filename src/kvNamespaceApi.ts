@@ -46,18 +46,18 @@ export default class KVNamespaceApi {
     this.fetchCount = 0
   }
 
-  fetch = async (path: string, init: RequestInit) => {
+  fetch = async (path: string, init: RequestInit, setJsonHeader = true) => {
     this.fetchCount++
     const endpoint = `https://api.cloudflare.com/client/v4/accounts/${this.accountId}/storage/kv/namespaces${path}`
 
     const { authToken, userAgent, xAuthApi, xAuthEmail } = this.options
     if (!init.headers) init.headers = {}
-    if (authToken) init.headers['Authorization'] = `Bearer ${authToken}`
-    if (userAgent) init.headers['User-Agent'] = userAgent
-    if (xAuthApi) init.headers['X-Auth-Api'] = xAuthApi
-    if (xAuthEmail) init.headers['X-Auth-Email'] = xAuthEmail
+    if (authToken) init.headers['authorization'] = `Bearer ${authToken}`
+    if (userAgent) init.headers['user-agent'] = userAgent
+    if (xAuthApi) init.headers['x-auth-api'] = xAuthApi
+    if (xAuthEmail) init.headers['x-auth-email'] = xAuthEmail
 
-    if (!init.headers['Content-Type']) init.headers['Content-Type'] = `application/json`
+    if (setJsonHeader && !init.headers['content-type']) init.headers['content-type'] = `application/json`
 
     const res = await fetch(endpoint, init)
     const data = await res.json()
