@@ -1,6 +1,6 @@
 {
   "name": "superkv",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "author": "g45t345rt",
   "license": "ISC",
   "description": "Store Cloudflare KV with more control and power",
@@ -19,6 +19,7 @@
     "test:kvApi2": "jest -i test/kvApi2.test.ts",
     "test:kvBig": "jest -i test/kvBig.test.ts",
     "test:kvBatch": "jest -i test/kvBatch.test.ts",
+    "test:kvBatchTable": "jest -i test/kvBatchTable.test.ts",
     "test:kvItem": "jest -i test/kvItem.test.ts",
     "test:delUpdatePrefix": "jest -i test/delUpdatePrefix.test.ts",
     "test:dist": "jest -i test/dist.test.ts",

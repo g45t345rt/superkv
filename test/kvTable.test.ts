@@ -1,10 +1,9 @@
 import { KVNamespaceApi, KVTable, KVApi } from '../src'
 import { mockUsers, User, userKVTableDefinition, UserValue } from './mockUser'
+import sleep from './sleep'
 
 const accountId = process.env.ACCOUNT_ID
 const authToken = process.env.AUTH_TOKEN
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 test('Test kvTable', async () => {
   const kvNamespaceApi = new KVNamespaceApi({ accountId }, { authToken })

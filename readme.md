@@ -16,12 +16,14 @@ Store Cloudflare KV with more control and power.
 
 - I made this because I want more control with KV storage.
 - If you have ideas or you know how to optimize/fix things please help :)
-- KV uses ascending lexicographical order. You have to use ULID to sort descending <https://www.npmjs.com/package/ulidx>
+- KV uses ascending lexicographical order. You can use ULID <https://www.npmjs.com/package/ulidx> or reverse the number to sort descending.
 - I have no prior knowledge in making a tool for data management and this is the best I could come up with.
+- Reads will sometimes reflect older state and write can take up to 60 seconds before reads in all edge locations are guaranteed <https://developers.cloudflare.com/workers/platform/limits#kv>
 
 ## TODO
 
-- Local KV api emulator
+- [] Local KV api emulator
+- [] KV triggers
 
 ## How to use it
 
